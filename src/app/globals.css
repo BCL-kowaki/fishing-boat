@@ -20,25 +20,6 @@ body {
   }
 }
 
-/* Instagram embed — 横幅をコンテナに収める */
-.instagram-media,
-.instagram-media-rendered,
-iframe.instagram-media,
-iframe.instagram-media-rendered {
-  max-width: 100% !important;
-  min-width: 0 !important;
-  width: 100% !important;
-  margin: 0 !important;
-}
-.ig-embed-container {
-  overflow: hidden;
-  max-width: 100%;
-}
-.ig-embed-container > * {
-  max-width: 100% !important;
-  min-width: 0 !important;
-}
-
 /* TCD-style button hover fill */
 @layer utilities {
   .btn-tcd {
