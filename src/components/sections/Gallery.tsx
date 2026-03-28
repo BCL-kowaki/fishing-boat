@@ -67,7 +67,7 @@ function InstagramEmbed({ url }: { url: string }) {
   }
 
   return (
-    <div ref={containerRef} className="w-full h-full">
+    <div ref={containerRef} className="ig-embed-container w-full h-full overflow-hidden">
       <blockquote
         className="instagram-media"
         data-instgrm-permalink={url}
@@ -77,7 +77,7 @@ function InstagramEmbed({ url }: { url: string }) {
           border: 0,
           margin: 0,
           maxWidth: "100%",
-          minWidth: "100%",
+          minWidth: "0",
           padding: 0,
           width: "100%",
         }}
@@ -138,7 +138,7 @@ export default function Gallery() {
   return (
     <section
       id="gallery"
-      className="py-[clamp(2.5rem,8vw,9.375rem)] px-5 bg-bg-alt"
+      className="py-[clamp(2.5rem,8vw,9.375rem)] px-5 bg-bg-alt overflow-hidden"
     >
       <div className="max-w-[1130px] mx-auto">
         <SectionHeader
@@ -148,7 +148,7 @@ export default function Gallery() {
         />
 
         {/* Grid — 1枚目大きく、残りは均等 */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-[10px] sm:gap-[15px]">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-[10px] sm:gap-[15px] overflow-hidden">
           {INSTAGRAM_POSTS.map((url, i) => (
             <div
               key={url}
