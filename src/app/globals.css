@@ -2,26 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+  line-height: 2;
+  color: #333;
+  letter-spacing: 0.03em;
+  font-size: 16px;
 }
 
+@media (min-width: 750px) {
+  body {
+    font-size: 18px;
+  }
+}
+
+/* TCD-style button hover fill */
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .btn-tcd {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    transition: color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .btn-tcd::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    left: -100%;
+    width: 100%;
+    background: #77654b;
+    transition: left 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: -1;
+  }
+  .btn-tcd:hover::before {
+    left: 0;
+  }
+  .btn-tcd:hover {
+    color: #fff;
+    border-color: #77654b;
   }
 }

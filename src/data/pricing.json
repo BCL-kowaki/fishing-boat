@@ -1,0 +1,50 @@
+[
+  {
+    "id": "uchinoura",
+    "type": "NORIAGE",
+    "name": "乗合 — 内之浦",
+    "price": 15000,
+    "priceLabel": "¥15,000",
+    "unit": "/人",
+    "note": "3名様から出船",
+    "featured": false,
+    "features": [
+      "内之浦沖ポイント",
+      "泳がせ or ジギング",
+      "氷・ポイント案内込み",
+      "※出港時間・所要時間は要確認"
+    ]
+  },
+  {
+    "id": "tanegashima",
+    "type": "NORIAGE",
+    "name": "乗合 — 種子島",
+    "price": 23000,
+    "priceLabel": "¥23,000",
+    "unit": "/人",
+    "note": "3名様から出船",
+    "featured": true,
+    "features": [
+      "種子島海域ポイント",
+      "泳がせ or ジギング",
+      "大型カンパチ実績多数",
+      "※出港時間・所要時間は要確認"
+    ]
+  },
+  {
+    "id": "charter",
+    "type": "CHARTER",
+    "name": "チャーター",
+    "price": null,
+    "priceLabel": "要問い合わせ",
+    "unit": "",
+    "note": "貸切で自由なプランを",
+    "featured": false,
+    "features": [
+      "お好みのポイントへ",
+      "少人数でもOK",
+      "初心者グループ歓迎",
+      "※チャーター料金は要確認"
+    ]
+  }
+]
