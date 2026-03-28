@@ -33,7 +33,7 @@ export default function Gallery() {
         />
 
         {/* Grid — TCD Muuri風レイアウト */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-[2px]">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-[10px]">
           {galleryItems.map((item, i) => (
             <a
               key={item.label}
