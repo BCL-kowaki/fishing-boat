@@ -63,7 +63,7 @@ async function fetchInstagramPosts(): Promise<BeholdPost[]> {
     // Behold のレスポンス: { username, posts: [...] }
     const posts = data?.posts || data;
     if (!Array.isArray(posts)) return [];
-    return posts.slice(0, 8);
+    return posts.slice(0, 24);
   } catch {
     return [];
   }
@@ -114,18 +114,16 @@ export default async function Gallery() {
         />
 
         {hasPosts ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-[10px]">
-            {posts.map((post, i) => {
-              const imgUrl = getImageUrl(post, i === 0);
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-[6px] sm:gap-[10px]">
+            {posts.map((post) => {
+              const imgUrl = getImageUrl(post, false);
               return (
                 <a
                   key={post.id}
                   href={post.permalink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`relative group overflow-hidden bg-gray-200 ${
-                    i === 0 ? "col-span-2 row-span-2 aspect-square" : "aspect-square"
-                  }`}
+                  className="relative group overflow-hidden bg-gray-200 aspect-square"
                 >
                   {imgUrl ? (
                     <Image
@@ -133,7 +131,7 @@ export default async function Gallery() {
                       alt={post.prunedCaption?.slice(0, 60) || post.caption?.slice(0, 60) || "Instagram投稿"}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-700"
-                      sizes={i === 0 ? "(max-width: 640px) 100vw, 50vw" : "(max-width: 640px) 50vw, 25vw"}
+                      sizes="(max-width: 640px) 50vw, 33vw"
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-gray-300">
@@ -155,14 +153,9 @@ export default async function Gallery() {
             })}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-[10px]">
-            {placeholderItems.map((item, i) => (
-              <div
-                key={item.label}
-                className={i === 0 ? "col-span-2 row-span-2" : ""}
-              >
-                <PlaceholderCard label={item.label} sub={item.sub} />
-              </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-[6px] sm:gap-[10px]">
+            {placeholderItems.map((item) => (
+              <PlaceholderCard key={item.label} label={item.label} sub={item.sub} />
             ))}
           </div>
         )}
