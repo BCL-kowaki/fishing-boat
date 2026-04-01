@@ -55,6 +55,7 @@ function Divider() {
 
 export default function RichEditor({ content, onChange, onImageUpload }: Props) {
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: { levels: [2, 3, 4] },
