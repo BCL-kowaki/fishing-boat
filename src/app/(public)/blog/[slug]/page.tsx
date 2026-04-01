@@ -46,7 +46,7 @@ export default async function BlogPostPage({
 
           {/* Body — TiptapのHTML出力をそのまま表示 */}
           <div
-            className="tiptap max-w-none text-gray-700"
+            className="tiptap article-body max-w-none text-gray-700"
             dangerouslySetInnerHTML={{ __html: post.body }}
           />
 

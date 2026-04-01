@@ -32,6 +32,40 @@ function generateRandomSlug(): string {
   return result;
 }
 
+/**
+ * HTMLを人間が読みやすいように整形する
+ * ブロック要素の前後に改行を入れる
+ */
+function formatHtml(html: string): string {
+  if (!html) return "";
+  // 一旦改行を全て除去して正規化
+  let formatted = html.replace(/\n/g, "").replace(/>\s+</g, "><");
+  // ブロック要素の前に改行を挿入
+  const blockTags = ["h2", "h3", "h4", "p", "ul", "ol", "li", "blockquote", "hr", "div", "figure", "img"];
+  for (const tag of blockTags) {
+    formatted = formatted.replace(new RegExp(`<${tag}`, "gi"), `\n<${tag}`);
+    formatted = formatted.replace(new RegExp(`</${tag}>`, "gi"), `</${tag}>\n`);
+  }
+  // 自閉じタグの後にも改行
+  formatted = formatted.replace(/<(hr|br|img)([^>]*)\/?>/gi, "<$1$2/>\n");
+  // 連続改行を1つに
+  formatted = formatted.replace(/\n{3,}/g, "\n\n");
+  return formatted.trim();
+}
+
+/**
+ * 整形されたHTMLを圧縮（保存用）
+ * 不要な改行を除去してTiptapが処理しやすい形にする
+ */
+function compactHtml(html: string): string {
+  if (!html) return "";
+  return html
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .join("");
+}
+
 export default function BlogForm({ initialData }: Props) {
   const router = useRouter();
   const isEdit = !!initialData;
@@ -48,10 +82,24 @@ export default function BlogForm({ initialData }: Props) {
   });
   const [saving, setSaving] = useState(false);
   const [editorMode, setEditorMode] = useState<"editor" | "code">("editor");
+  const [codeValue, setCodeValue] = useState("");
   const [uploading, setUploading] = useState(false);
 
   const update = (key: keyof BlogFormData, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  // モード切替ハンドラ
+  const switchToCode = () => {
+    // ビジュアル → HTML: 現在のbodyを整形して表示
+    setCodeValue(formatHtml(form.body));
+    setEditorMode("code");
+  };
+
+  const switchToEditor = () => {
+    // HTML → ビジュアル: コードの内容をbodyに反映
+    update("body", compactHtml(codeValue));
+    setEditorMode("editor");
   };
 
   const handleThumbnailUpload = useCallback(async (file: File) => {
@@ -86,12 +134,16 @@ export default function BlogForm({ initialData }: Props) {
     e.preventDefault();
     setSaving(true);
     try {
+      // HTMLモードで保存する場合はcodeValueを反映
+      const body = editorMode === "code" ? compactHtml(codeValue) : form.body;
+      const submitData = { ...form, body };
+
       const url = isEdit ? `/api/blog/${initialData!.id}` : "/api/blog";
       const method = isEdit ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(submitData),
       });
       if (res.ok) {
         router.push("/admin/blog");
@@ -117,7 +169,6 @@ export default function BlogForm({ initialData }: Props) {
             />
           </div>
 
-          {/* タグ・日付（スラグ欄を削除） */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[0.65rem] text-gray-400 mb-1 tracking-[0.05em]">
@@ -219,7 +270,7 @@ export default function BlogForm({ initialData }: Props) {
         <div className="flex items-center border border-gray-200 border-b-0 bg-gray-50">
           <button
             type="button"
-            onClick={() => setEditorMode("editor")}
+            onClick={switchToEditor}
             className={`px-5 py-2.5 text-xs font-bold tracking-[0.05em] transition-colors ${
               editorMode === "editor"
                 ? "text-primary border-b-2 border-primary bg-white"
@@ -230,7 +281,7 @@ export default function BlogForm({ initialData }: Props) {
           </button>
           <button
             type="button"
-            onClick={() => setEditorMode("code")}
+            onClick={switchToCode}
             className={`px-5 py-2.5 text-xs font-bold tracking-[0.05em] transition-colors ${
               editorMode === "code"
                 ? "text-primary border-b-2 border-primary bg-white"
@@ -249,11 +300,11 @@ export default function BlogForm({ initialData }: Props) {
           />
         ) : (
           <textarea
-            value={form.body}
-            onChange={(e) => update("body", e.target.value)}
+            value={codeValue}
+            onChange={(e) => setCodeValue(e.target.value)}
             rows={25}
-            className="w-full px-4 py-4 border border-gray-200 outline-none font-mono text-xs text-gray-600 leading-[1.8] resize-y"
-            placeholder="<h2>見出し</h2><p>本文をHTMLで入力...</p>"
+            className="w-full px-4 py-4 border border-gray-200 outline-none font-mono text-xs text-gray-600 leading-[2] resize-y whitespace-pre-wrap"
+            placeholder={"<h2>見出し</h2>\n\n<p>本文をHTMLで入力...</p>"}
           />
         )}
       </div>

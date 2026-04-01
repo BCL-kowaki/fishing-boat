@@ -45,6 +45,14 @@ body {
 .tiptap img { max-width: 100%; height: auto; margin: 1em 0; }
 .tiptap mark { padding: 0.1em 0.2em; }
 
+/* 記事本文: スマホでは <br> を非表示（自然な折り返しに任せる） */
+@media (max-width: 749px) {
+  .tiptap br,
+  .article-body br {
+    display: none;
+  }
+}
+
 /* TCD-style button hover fill */
 @layer utilities {
   .btn-tcd {
