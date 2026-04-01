@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import MobileMenu from "./MobileMenu";
 import { NAV_LINKS } from "@/lib/constants";
 
@@ -37,11 +38,28 @@ export default function Header() {
           <a
             href="#top"
             onClick={(e) => handleNavClick(e, "#top")}
-            className={`font-serif font-bold text-base sm:text-lg tracking-[0.1em] transition-colors duration-500 ${
-              scrolled ? "text-black" : "text-white"
-            }`}
+            className="relative h-[30px] sm:h-[40px] w-[120px] sm:w-[160px]"
           >
-            遊漁船ヤマト
+            {/* 白ロゴ — スクロール前 */}
+            <Image
+              src="/images/logo_white.png"
+              alt="遊漁船ヤマト"
+              fill
+              className={`object-contain object-left transition-opacity duration-500 ${
+                scrolled ? "opacity-0" : "opacity-100"
+              }`}
+              priority
+            />
+            {/* 通常ロゴ — スクロール後 */}
+            <Image
+              src="/images/logo.png"
+              alt="遊漁船ヤマト"
+              fill
+              className={`object-contain object-left transition-opacity duration-500 ${
+                scrolled ? "opacity-100" : "opacity-0"
+              }`}
+              priority
+            />
           </a>
 
           {/* Desktop Nav */}
