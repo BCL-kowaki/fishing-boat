@@ -44,6 +44,18 @@ export default async function BlogPostPage({
             </h1>
           </div>
 
+          {/* アイキャッチ画像 */}
+          {post.thumbnail && (
+            <div className="mb-10">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={post.thumbnail}
+                alt={post.title}
+                className="w-full aspect-[16/9] object-cover"
+              />
+            </div>
+          )}
+
           {/* Body — TiptapのHTML出力をそのまま表示 */}
           <div
             className="tiptap article-body max-w-none text-gray-700"
