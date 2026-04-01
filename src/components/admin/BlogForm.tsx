@@ -2,10 +2,8 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import dynamic from "next/dynamic";
 
-// Tiptapはクライアントのみで動作するため動的インポート
 const RichEditor = dynamic(() => import("./RichEditor"), { ssr: false });
 
 type BlogFormData = {
@@ -25,12 +23,13 @@ type Props = {
 
 const TAGS = ["釣果レポート", "タックル紹介", "お知らせ"];
 
-function generateSlug(title: string, date: string): string {
-  return `${date}-${title
-    .replace(/[^\w\u3000-\u9FFF]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 40)}`;
+function generateRandomSlug(): string {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
 }
 
 export default function BlogForm({ initialData }: Props) {
@@ -39,7 +38,7 @@ export default function BlogForm({ initialData }: Props) {
 
   const [form, setForm] = useState<BlogFormData>({
     title: initialData?.title || "",
-    slug: initialData?.slug || "",
+    slug: initialData?.slug || generateRandomSlug(),
     tag: initialData?.tag || TAGS[0],
     date: initialData?.date || new Date().toISOString().split("T")[0],
     excerpt: initialData?.excerpt || "",
@@ -52,42 +51,28 @@ export default function BlogForm({ initialData }: Props) {
   const [uploading, setUploading] = useState(false);
 
   const update = (key: keyof BlogFormData, value: string | boolean) => {
-    setForm((prev) => {
-      const next = { ...prev, [key]: value };
-      if (key === "title" && !isEdit) {
-        next.slug = generateSlug(value as string, next.date);
-      }
-      if (key === "date" && !isEdit) {
-        next.slug = generateSlug(next.title, value as string);
-      }
-      return next;
-    });
+    setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  /* ── 画像アップロード（アイキャッチ用） ── */
-  const handleThumbnailUpload = useCallback(
-    async (file: File) => {
-      setUploading(true);
-      try {
-        const fd = new FormData();
-        fd.append("file", file);
-        fd.append("crop", "16:9");
-        const res = await fetch("/api/upload", { method: "POST", body: fd });
-        if (!res.ok) {
-          const err = await res.json();
-          alert(err.error || "アップロードに失敗しました");
-          return;
-        }
-        const { url } = await res.json();
-        update("thumbnail", url);
-      } finally {
-        setUploading(false);
+  const handleThumbnailUpload = useCallback(async (file: File) => {
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("crop", "16:9");
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || "アップロードに失敗しました");
+        return;
       }
-    },
-    []
-  );
+      const { url } = await res.json();
+      setForm((prev) => ({ ...prev, thumbnail: url }));
+    } finally {
+      setUploading(false);
+    }
+  }, []);
 
-  /* ── 画像アップロード（本文用 — RichEditorから呼ばれる） ── */
   const handleBodyImageUpload = useCallback(async (file: File): Promise<string> => {
     const fd = new FormData();
     fd.append("file", file);
@@ -97,7 +82,6 @@ export default function BlogForm({ initialData }: Props) {
     return url;
   }, []);
 
-  /* ── 送信 ── */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -120,7 +104,6 @@ export default function BlogForm({ initialData }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {/* ── 上部: メタ情報 ── */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
         <div className="space-y-5">
           <div>
@@ -134,19 +117,8 @@ export default function BlogForm({ initialData }: Props) {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-[0.65rem] text-gray-400 mb-1 tracking-[0.05em]">
-                スラグ
-              </label>
-              <input
-                type="text"
-                value={form.slug}
-                onChange={(e) => update("slug", e.target.value)}
-                required
-                className="w-full px-3 py-2 border border-gray-200 text-xs outline-none focus:border-primary transition-colors font-mono"
-              />
-            </div>
+          {/* タグ・日付（スラグ欄を削除） */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[0.65rem] text-gray-400 mb-1 tracking-[0.05em]">
                 タグ
@@ -187,15 +159,20 @@ export default function BlogForm({ initialData }: Props) {
           </div>
         </div>
 
-        {/* ── 右サイドバー ── */}
+        {/* 右サイドバー */}
         <div className="space-y-5">
           <div className="bg-white border border-gray-200 p-4">
             <label className="block text-[0.65rem] text-gray-400 mb-2 tracking-[0.05em]">
               アイキャッチ画像
             </label>
             {form.thumbnail ? (
-              <div className="relative aspect-[16/10] bg-gray-100 mb-3">
-                <Image src={form.thumbnail} alt="アイキャッチ" fill className="object-cover" />
+              <div className="relative aspect-[16/10] bg-gray-100 mb-3 overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={form.thumbnail}
+                  alt="アイキャッチ"
+                  className="w-full h-full object-cover"
+                />
                 <button
                   type="button"
                   onClick={() => update("thumbnail", "")}
@@ -237,9 +214,8 @@ export default function BlogForm({ initialData }: Props) {
         </div>
       </div>
 
-      {/* ── 本文エディタ ── */}
+      {/* 本文エディタ */}
       <div>
-        {/* モード切替タブ */}
         <div className="flex items-center border border-gray-200 border-b-0 bg-gray-50">
           <button
             type="button"
@@ -265,7 +241,6 @@ export default function BlogForm({ initialData }: Props) {
           </button>
         </div>
 
-        {/* エディタ本体 */}
         {editorMode === "editor" ? (
           <RichEditor
             content={form.body}
@@ -283,7 +258,7 @@ export default function BlogForm({ initialData }: Props) {
         )}
       </div>
 
-      {/* ── 送信ボタン ── */}
+      {/* 送信ボタン */}
       <div className="flex gap-3 pt-2 sticky bottom-0 bg-gray-50 py-4 -mx-5 sm:-mx-8 px-5 sm:px-8 border-t border-gray-200">
         <button
           type="submit"
