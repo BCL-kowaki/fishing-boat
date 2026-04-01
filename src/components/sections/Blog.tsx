@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { getAllPosts } from "@/lib/blog";
 
@@ -28,10 +29,19 @@ export default async function Blog() {
                 className="group cursor-pointer"
               >
                 <div className="aspect-[16/10] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative">
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-500" />
-                  <div className="flex items-center justify-center h-full text-muted-light text-xs">
-                    サムネイル
-                  </div>
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-500 z-10" />
+                  {post.thumbnail ? (
+                    <Image
+                      src={post.thumbnail}
+                      alt={post.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-muted-light text-xs">
+                      サムネイル
+                    </div>
+                  )}
                 </div>
                 <div className="pt-5">
                   <div className="flex items-center gap-3 mb-3">

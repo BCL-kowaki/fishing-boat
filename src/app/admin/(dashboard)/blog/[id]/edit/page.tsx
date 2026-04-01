@@ -26,6 +26,7 @@ export default async function EditBlogPost({
           date: post.date,
           excerpt: post.excerpt,
           body: post.body,
+          thumbnail: post.thumbnail,
           published: post.published,
         }}
       />
