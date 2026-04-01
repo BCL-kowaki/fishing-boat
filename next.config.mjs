@@ -7,6 +7,8 @@ const nextConfig = {
       { protocol: "https", hostname: "**.fbcdn.net" },
       // Behold.so CDN
       { protocol: "https", hostname: "**.behold.so" },
+      { protocol: "https", hostname: "**.behold.pictures" },
+      { protocol: "https", hostname: "behold.pictures" },
     ],
   },
 };

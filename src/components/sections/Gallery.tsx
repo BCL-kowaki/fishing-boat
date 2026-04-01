@@ -9,24 +9,46 @@ import { INSTAGRAM_URL } from "@/lib/constants";
  * 全て代行してくれるサービス。
  * こちらは専用URLに fetch するだけで投稿データのJSONを取得。
  *
- * セットアップ:
- * 1. https://behold.so でアカウント作成（無料プランあり）
- * 2. Instagramアカウントを接続
- * 3. Feed を作成 → Feed ID を取得
- * 4. .env.local に NEXT_PUBLIC_BEHOLD_FEED_ID=xxxxx を設定
- *
+ * .env.local に NEXT_PUBLIC_BEHOLD_FEED_ID=xxxxx を設定
  * Feed IDが未設定の場合はプレースホルダーを表示。
  * -------------------------------------------------------- */
+
+type BeholdSize = {
+  mediaUrl: string;
+  height: number;
+  width: number;
+};
 
 type BeholdPost = {
   id: string;
   mediaUrl: string;
-  thumbnailUrl?: string;
   permalink: string;
   caption?: string;
+  prunedCaption?: string;
   mediaType: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM";
   timestamp: string;
+  sizes?: {
+    small?: BeholdSize;
+    medium?: BeholdSize;
+    large?: BeholdSize;
+    full?: BeholdSize;
+  };
+  missingVideoThumbnail?: boolean;
 };
+
+function getImageUrl(post: BeholdPost, large = false): string {
+  // 動画でサムネイルがない場合はプレースホルダー
+  if (post.mediaType === "VIDEO" && post.missingVideoThumbnail) {
+    return "";
+  }
+  // sizes から適切なサイズを選択
+  if (post.sizes) {
+    if (large && post.sizes.large) return post.sizes.large.mediaUrl;
+    if (post.sizes.medium) return post.sizes.medium.mediaUrl;
+    if (post.sizes.small) return post.sizes.small.mediaUrl;
+  }
+  return post.mediaUrl;
+}
 
 async function fetchInstagramPosts(): Promise<BeholdPost[]> {
   const feedId = process.env.NEXT_PUBLIC_BEHOLD_FEED_ID;
@@ -34,11 +56,14 @@ async function fetchInstagramPosts(): Promise<BeholdPost[]> {
 
   try {
     const res = await fetch(`https://feeds.behold.so/${feedId}`, {
-      next: { revalidate: 3600 }, // 1時間キャッシュ
+      next: { revalidate: 3600 },
     });
     if (!res.ok) return [];
     const data = await res.json();
-    return (data || []).slice(0, 8);
+    // Behold のレスポンス: { username, posts: [...] }
+    const posts = data?.posts || data;
+    if (!Array.isArray(posts)) return [];
+    return posts.slice(0, 8);
   } catch {
     return [];
   }
@@ -89,40 +114,47 @@ export default async function Gallery() {
         />
 
         {hasPosts ? (
-          /* ── Behold データあり: 実際のIG投稿を表示 ── */
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-[10px]">
-            {posts.map((post, i) => (
-              <a
-                key={post.id}
-                href={post.permalink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`relative group overflow-hidden bg-gray-200 ${
-                  i === 0 ? "col-span-2 row-span-2 aspect-square" : "aspect-square"
-                }`}
-              >
-                <Image
-                  src={post.mediaType === "VIDEO" ? (post.thumbnailUrl || post.mediaUrl) : post.mediaUrl}
-                  alt={post.caption?.slice(0, 60) || "Instagram投稿"}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-700"
-                  sizes={i === 0 ? "(max-width: 640px) 100vw, 50vw" : "(max-width: 640px) 50vw, 25vw"}
-                />
-                {/* Hover overlay */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-500 z-10" />
-                {/* Caption on hover */}
-                {post.caption && (
-                  <div className="absolute bottom-0 left-0 right-0 z-20 p-3 sm:p-4 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    <p className="text-white text-[0.65rem] sm:text-xs leading-[1.6] line-clamp-2">
-                      {post.caption.slice(0, 80)}
-                    </p>
-                  </div>
-                )}
-              </a>
-            ))}
+            {posts.map((post, i) => {
+              const imgUrl = getImageUrl(post, i === 0);
+              return (
+                <a
+                  key={post.id}
+                  href={post.permalink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`relative group overflow-hidden bg-gray-200 ${
+                    i === 0 ? "col-span-2 row-span-2 aspect-square" : "aspect-square"
+                  }`}
+                >
+                  {imgUrl ? (
+                    <Image
+                      src={imgUrl}
+                      alt={post.prunedCaption?.slice(0, 60) || post.caption?.slice(0, 60) || "Instagram投稿"}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-700"
+                      sizes={i === 0 ? "(max-width: 640px) 100vw, 50vw" : "(max-width: 640px) 50vw, 25vw"}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-300">
+                      <span className="text-xs text-gray-400">▶ VIDEO</span>
+                    </div>
+                  )}
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-500 z-10" />
+                  {/* Caption on hover */}
+                  {(post.prunedCaption || post.caption) && (
+                    <div className="absolute bottom-0 left-0 right-0 z-20 p-3 sm:p-4 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                      <p className="text-white text-[0.65rem] sm:text-xs leading-[1.6] line-clamp-2">
+                        {(post.prunedCaption || post.caption || "").slice(0, 80)}
+                      </p>
+                    </div>
+                  )}
+                </a>
+              );
+            })}
           </div>
         ) : (
-          /* ── データなし: プレースホルダー ── */
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-[10px]">
             {placeholderItems.map((item, i) => (
               <div
