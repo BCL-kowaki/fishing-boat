@@ -16,7 +16,7 @@ export default function Contact() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
           {/* Left — dark info panel */}
           <div className="bg-black text-white p-8 sm:p-14 flex flex-col justify-center">
-            <h3 className="font-serif text-xl sm:text-2xl tracking-[0.08em] mb-6 leading-[1.6]">
+            <h3 className="font-sans text-xl sm:text-2xl tracking-[0.08em] mb-6 leading-[1.6]">
               まずはお気軽に
               <br />
               お電話ください
@@ -29,13 +29,13 @@ export default function Contact() {
             <div className="space-y-6">
               <div className="flex items-center gap-4">
                 <span className="text-primary text-xs tracking-[0.15em]">TEL</span>
-                <a href={PHONE_TEL} className="text-lg sm:text-xl font-serif tracking-[0.1em] hover:text-primary transition-colors">
+                <a href={PHONE_TEL} className="text-lg sm:text-xl font-sans tracking-[0.1em] hover:text-primary transition-colors">
                   {PHONE_NUMBER}
                 </a>
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-primary text-xs tracking-[0.15em]">IG</span>
-                <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="font-serif tracking-[0.05em] hover:text-primary transition-colors">
+                <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="font-sans tracking-[0.05em] hover:text-primary transition-colors">
                   {INSTAGRAM_HANDLE}
                 </a>
               </div>

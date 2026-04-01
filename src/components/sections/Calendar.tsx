@@ -52,7 +52,7 @@ export default function Calendar() {
         <div className="bg-white p-5 sm:p-10 border border-border">
           {/* Month nav */}
           <div className="flex justify-between items-center mb-6">
-            <h3 className="font-serif text-lg tracking-[0.08em] text-black">
+            <h3 className="font-sans text-lg tracking-[0.08em] text-black">
               {year}年 {month + 1}月
             </h3>
             <div className="flex gap-2">

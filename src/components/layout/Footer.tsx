@@ -12,7 +12,7 @@ export default function Footer() {
       {/* Main */}
       <div className="flex items-center justify-center min-h-[400px] sm:min-h-[500px] px-6">
         <div className="text-center">
-          <div className="font-serif text-2xl sm:text-3xl tracking-[0.15em] font-bold mb-8">
+          <div className="font-sans text-2xl sm:text-3xl tracking-[0.15em] font-bold mb-8">
             {SITE_NAME}
           </div>
 

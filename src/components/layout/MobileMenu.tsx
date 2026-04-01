@@ -45,7 +45,7 @@ export default function MobileMenu({ isOpen, onClose }: Props) {
             <button
               key={link.href}
               onClick={() => handleClick(link.href)}
-              className="text-white/80 text-lg font-serif tracking-[0.1em] py-3 hover:text-primary transition-colors min-h-[48px]"
+              className="text-white/80 text-lg font-sans tracking-[0.1em] py-3 hover:text-primary transition-colors min-h-[48px]"
             >
               {link.label}
             </button>
@@ -54,7 +54,7 @@ export default function MobileMenu({ isOpen, onClose }: Props) {
           <div className="mt-8 pt-8 border-t border-white/10 w-full">
             <a
               href={PHONE_TEL}
-              className="text-primary text-lg tracking-[0.1em] font-serif"
+              className="text-primary text-lg tracking-[0.1em] font-sans"
             >
               {PHONE_NUMBER}
             </a>

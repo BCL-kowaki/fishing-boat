@@ -34,7 +34,7 @@ export default function About() {
               className="bg-white p-6 sm:p-8 text-center"
             >
               <div className="text-2xl mb-3">{f.icon}</div>
-              <h4 className="font-serif text-sm font-semibold tracking-[0.05em] text-black mb-2">
+              <h4 className="font-sans text-sm font-semibold tracking-[0.05em] text-black mb-2">
                 {f.title}
               </h4>
               <p className="text-xs text-muted leading-[1.8]">{f.desc}</p>

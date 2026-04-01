@@ -27,7 +27,7 @@ export default function Hero() {
           鹿児島 東串良 波見港
         </p>
 
-        <h1 className="font-serif text-white text-[clamp(1.8rem,5vw,3.5rem)] font-semibold leading-[1.4] tracking-[0.1em] mb-6 sm:mb-8 drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
+        <h1 className="font-sans text-white text-[clamp(1.8rem,5vw,3.5rem)] font-semibold leading-[1.4] tracking-[0.1em] mb-6 sm:mb-8 drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
           大物を、その手に。
         </h1>
 

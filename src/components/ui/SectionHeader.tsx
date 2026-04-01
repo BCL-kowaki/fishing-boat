@@ -23,7 +23,7 @@ export default function SectionHeader({
         {label}
       </span>
       <h2
-        className={`font-serif font-semibold mb-6 text-[clamp(1.25rem,3vw,2.125rem)] leading-[1.5] tracking-[0.08em] ${
+        className={`font-sans font-semibold mb-6 text-[clamp(1.25rem,3vw,2.125rem)] leading-[1.5] tracking-[0.08em] ${
           light ? "text-white" : "text-black"
         }`}
       >

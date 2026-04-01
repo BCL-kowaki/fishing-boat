@@ -32,12 +32,12 @@ export default function Pricing() {
                 <span className="text-[0.65rem] text-white/40 tracking-[0.2em] uppercase">
                   {plan.type}
                 </span>
-                <h3 className="font-serif text-lg sm:text-xl font-semibold tracking-[0.08em] mt-3 mb-6">
+                <h3 className="font-sans text-lg sm:text-xl font-semibold tracking-[0.08em] mt-3 mb-6">
                   {plan.name}
                 </h3>
 
                 <div
-                  className={`font-serif tracking-[0.05em] mb-2 ${
+                  className={`font-sans tracking-[0.05em] mb-2 ${
                     plan.price
                       ? "text-[2rem] sm:text-[2.5rem] text-primary"
                       : "text-xl sm:text-2xl text-primary"

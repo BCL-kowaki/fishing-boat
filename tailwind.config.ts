@@ -24,12 +24,6 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["'Noto Sans JP'", "Arial", "'Hiragino Sans'", "sans-serif"],
-        serif: [
-          "'Noto Serif JP'",
-          "'Times New Roman'",
-          "'Yu Mincho'",
-          "serif",
-        ],
       },
       keyframes: {
         "fade-in-up": {
