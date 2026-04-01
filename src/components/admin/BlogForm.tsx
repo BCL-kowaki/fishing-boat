@@ -118,6 +118,10 @@ export default function BlogForm({ initialData }: Props) {
       try {
         const formData = new FormData();
         formData.append("file", file);
+        // アイキャッチは16:9にトリミング
+        if (target === "thumbnail") {
+          formData.append("crop", "16:9");
+        }
 
         const res = await fetch("/api/upload", {
           method: "POST",

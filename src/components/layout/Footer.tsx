@@ -1,3 +1,4 @@
+import Image from "next/image";
 import {
   SITE_NAME,
   PHONE_NUMBER,
@@ -12,8 +13,14 @@ export default function Footer() {
       {/* Main */}
       <div className="flex items-center justify-center min-h-[400px] sm:min-h-[500px] px-6">
         <div className="text-center">
-          <div className="font-sans text-2xl sm:text-3xl tracking-[0.15em] font-bold mb-8">
-            {SITE_NAME}
+          {/* Logo */}
+          <div className="relative h-[40px] sm:h-[50px] w-[160px] sm:w-[200px] mx-auto mb-8">
+            <Image
+              src="/images/logo_white.png"
+              alt={SITE_NAME}
+              fill
+              className="object-contain"
+            />
           </div>
 
           <div className="text-white/50 text-xs sm:text-sm leading-[2.5] tracking-[0.1em]">
