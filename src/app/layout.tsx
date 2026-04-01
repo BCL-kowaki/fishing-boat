@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from "@/lib/constants";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
   title: {
@@ -37,9 +35,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased bg-white">
-        <Header />
         {children}
-        <Footer />
       </body>
     </html>
   );

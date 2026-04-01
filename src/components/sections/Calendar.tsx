@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import SectionHeader from "@/components/ui/SectionHeader";
-import scheduleData from "@/data/schedule.json";
 
 type ScheduleStatus = "available" | "booked";
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
@@ -16,12 +15,15 @@ function getFirstDayOfWeek(y: number, m: number) {
 function formatKey(y: number, m: number, d: number) {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
+function formatMonth(y: number, m: number) {
+  return `${y}-${String(m + 1).padStart(2, "0")}`;
+}
 
 export default function Calendar() {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
-  const schedule = scheduleData as Record<string, ScheduleStatus>;
+  const [schedule, setSchedule] = useState<Record<string, ScheduleStatus>>({});
 
   const { days, offset } = useMemo(
     () => ({
@@ -30,6 +32,15 @@ export default function Calendar() {
     }),
     [year, month]
   );
+
+  // API からスケジュール取得
+  useEffect(() => {
+    const ym = formatMonth(year, month);
+    fetch(`/api/schedule?month=${ym}`)
+      .then((r) => r.json())
+      .then((data) => setSchedule(data))
+      .catch(() => setSchedule({}));
+  }, [year, month]);
 
   const prev = () => {
     if (month === 0) { setYear((y) => y - 1); setMonth(11); }
@@ -50,7 +61,6 @@ export default function Calendar() {
         />
 
         <div className="bg-white p-5 sm:p-10 border border-border">
-          {/* Month nav */}
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-sans text-lg tracking-[0.08em] text-black">
               {year}年 {month + 1}月
@@ -61,7 +71,6 @@ export default function Calendar() {
             </div>
           </div>
 
-          {/* Grid */}
           <div className="grid grid-cols-7 gap-1">
             {WEEKDAYS.map((d) => (
               <div key={d} className="text-center text-[0.6rem] sm:text-[0.65rem] font-medium text-muted py-2 tracking-[0.1em]">
@@ -92,7 +101,6 @@ export default function Calendar() {
             })}
           </div>
 
-          {/* Legend */}
           <div className="flex gap-5 mt-6 justify-center">
             <span className="flex items-center gap-1.5 text-[0.65rem] text-muted">
               <span className="w-2.5 h-2.5 bg-primary/20" /> 空きあり
