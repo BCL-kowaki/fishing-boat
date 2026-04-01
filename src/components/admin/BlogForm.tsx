@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import dynamic from "next/dynamic";
+
+// Tiptapはクライアントのみで動作するため動的インポート
+const RichEditor = dynamic(() => import("./RichEditor"), { ssr: false });
 
 type BlogFormData = {
   title: string;
@@ -29,29 +33,9 @@ function generateSlug(title: string, date: string): string {
     .slice(0, 40)}`;
 }
 
-/* ── ツールバーボタン ── */
-type ToolAction = {
-  label: string;
-  icon: string;
-  prefix: string;
-  suffix: string;
-  block?: boolean;
-};
-
-const TOOLS: ToolAction[] = [
-  { label: "見出し2", icon: "H2", prefix: "## ", suffix: "", block: true },
-  { label: "見出し3", icon: "H3", prefix: "### ", suffix: "", block: true },
-  { label: "太字", icon: "B", prefix: "**", suffix: "**" },
-  { label: "リスト", icon: "・", prefix: "- ", suffix: "", block: true },
-  { label: "番号リスト", icon: "1.", prefix: "1. ", suffix: "", block: true },
-  { label: "リンク", icon: "🔗", prefix: "[", suffix: "](URL)" },
-  { label: "区切り線", icon: "─", prefix: "\n---\n", suffix: "", block: true },
-];
-
 export default function BlogForm({ initialData }: Props) {
   const router = useRouter();
   const isEdit = !!initialData;
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const [form, setForm] = useState<BlogFormData>({
     title: initialData?.title || "",
@@ -80,107 +64,51 @@ export default function BlogForm({ initialData }: Props) {
     });
   };
 
-  /* ── ツールバー挿入 ── */
-  const insertMarkdown = useCallback(
-    (tool: ToolAction) => {
-      const ta = textareaRef.current;
-      if (!ta) return;
-
-      const start = ta.selectionStart;
-      const end = ta.selectionEnd;
-      const text = form.body;
-      const selected = text.substring(start, end);
-
-      let insertion: string;
-      if (tool.block && !selected) {
-        insertion = `${tool.prefix}テキスト${tool.suffix}`;
-      } else {
-        insertion = `${tool.prefix}${selected || "テキスト"}${tool.suffix}`;
-      }
-
-      const newText = text.substring(0, start) + insertion + text.substring(end);
-      update("body", newText);
-
-      // カーソル位置復元
-      requestAnimationFrame(() => {
-        ta.focus();
-        const cursorPos = start + tool.prefix.length + (selected || "テキスト").length;
-        ta.setSelectionRange(cursorPos, cursorPos);
-      });
-    },
-    [form.body]
-  );
-
-  /* ── 画像アップロード ── */
-  const handleImageUpload = useCallback(
-    async (file: File, target: "thumbnail" | "body") => {
+  /* ── 画像アップロード（アイキャッチ用） ── */
+  const handleThumbnailUpload = useCallback(
+    async (file: File) => {
       setUploading(true);
       try {
-        const formData = new FormData();
-        formData.append("file", file);
-        // アイキャッチは16:9にトリミング
-        if (target === "thumbnail") {
-          formData.append("crop", "16:9");
-        }
-
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("crop", "16:9");
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
         if (!res.ok) {
           const err = await res.json();
           alert(err.error || "アップロードに失敗しました");
           return;
         }
-
         const { url } = await res.json();
-
-        if (target === "thumbnail") {
-          update("thumbnail", url);
-        } else {
-          // 本文に画像を挿入
-          const ta = textareaRef.current;
-          const pos = ta?.selectionStart || form.body.length;
-          const imgMarkdown = `\n![画像](${url})\n`;
-          const newBody =
-            form.body.substring(0, pos) + imgMarkdown + form.body.substring(pos);
-          update("body", newBody);
-        }
+        update("thumbnail", url);
       } finally {
         setUploading(false);
       }
     },
-    [form.body]
+    []
   );
 
-  /* ── 本文への画像ドロップ/ペースト ── */
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      const file = e.dataTransfer.files[0];
-      if (file?.type.startsWith("image/")) {
-        handleImageUpload(file, "body");
-      }
-    },
-    [handleImageUpload]
-  );
+  /* ── 画像アップロード（本文用 — RichEditorから呼ばれる） ── */
+  const handleBodyImageUpload = useCallback(async (file: File): Promise<string> => {
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body: fd });
+    if (!res.ok) return "";
+    const { url } = await res.json();
+    return url;
+  }, []);
 
   /* ── 送信 ── */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-
     try {
       const url = isEdit ? `/api/blog/${initialData!.id}` : "/api/blog";
       const method = isEdit ? "PUT" : "POST";
-
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-
       if (res.ok) {
         router.push("/admin/blog");
         router.refresh();
@@ -195,7 +123,6 @@ export default function BlogForm({ initialData }: Props) {
       {/* ── 上部: メタ情報 ── */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
         <div className="space-y-5">
-          {/* タイトル */}
           <div>
             <input
               type="text"
@@ -207,7 +134,6 @@ export default function BlogForm({ initialData }: Props) {
             />
           </div>
 
-          {/* スラグ・タグ・日付 */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-[0.65rem] text-gray-400 mb-1 tracking-[0.05em]">
@@ -248,7 +174,6 @@ export default function BlogForm({ initialData }: Props) {
             </div>
           </div>
 
-          {/* 抜粋 */}
           <div>
             <label className="block text-[0.65rem] text-gray-400 mb-1 tracking-[0.05em]">
               抜粋（一覧表示用）
@@ -262,21 +187,15 @@ export default function BlogForm({ initialData }: Props) {
           </div>
         </div>
 
-        {/* ── 右サイドバー: アイキャッチ + 公開設定 ── */}
+        {/* ── 右サイドバー ── */}
         <div className="space-y-5">
-          {/* アイキャッチ画像 */}
           <div className="bg-white border border-gray-200 p-4">
             <label className="block text-[0.65rem] text-gray-400 mb-2 tracking-[0.05em]">
               アイキャッチ画像
             </label>
             {form.thumbnail ? (
               <div className="relative aspect-[16/10] bg-gray-100 mb-3">
-                <Image
-                  src={form.thumbnail}
-                  alt="アイキャッチ"
-                  fill
-                  className="object-cover"
-                />
+                <Image src={form.thumbnail} alt="アイキャッチ" fill className="object-cover" />
                 <button
                   type="button"
                   onClick={() => update("thumbnail", "")}
@@ -298,13 +217,12 @@ export default function BlogForm({ initialData }: Props) {
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) handleImageUpload(file, "thumbnail");
+                  if (file) handleThumbnailUpload(file);
                 }}
               />
             </label>
           </div>
 
-          {/* 公開設定 */}
           <div className="bg-white border border-gray-200 p-4">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -320,83 +238,49 @@ export default function BlogForm({ initialData }: Props) {
       </div>
 
       {/* ── 本文エディタ ── */}
-      <div className="bg-white border border-gray-200">
+      <div>
         {/* モード切替タブ */}
-        <div className="flex items-center border-b border-gray-200">
+        <div className="flex items-center border border-gray-200 border-b-0 bg-gray-50">
           <button
             type="button"
             onClick={() => setEditorMode("editor")}
             className={`px-5 py-2.5 text-xs font-bold tracking-[0.05em] transition-colors ${
               editorMode === "editor"
-                ? "text-primary border-b-2 border-primary -mb-px"
+                ? "text-primary border-b-2 border-primary bg-white"
                 : "text-gray-400 hover:text-gray-600"
             }`}
           >
-            エディタ
+            ビジュアルエディタ
           </button>
           <button
             type="button"
             onClick={() => setEditorMode("code")}
             className={`px-5 py-2.5 text-xs font-bold tracking-[0.05em] transition-colors ${
               editorMode === "code"
-                ? "text-primary border-b-2 border-primary -mb-px"
+                ? "text-primary border-b-2 border-primary bg-white"
                 : "text-gray-400 hover:text-gray-600"
             }`}
           >
-            コード (Markdown)
+            HTML
           </button>
-
-          {/* 画像挿入ボタン */}
-          <label className="ml-auto mr-3 px-3 py-1.5 text-[0.65rem] text-gray-400 border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors">
-            {uploading ? "..." : "📷 画像挿入"}
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleImageUpload(file, "body");
-              }}
-            />
-          </label>
         </div>
 
-        {/* ツールバー（エディタモード時） */}
-        {editorMode === "editor" && (
-          <div className="flex items-center gap-1 px-3 py-2 border-b border-gray-100 bg-gray-50 flex-wrap">
-            {TOOLS.map((tool) => (
-              <button
-                key={tool.label}
-                type="button"
-                onClick={() => insertMarkdown(tool)}
-                title={tool.label}
-                className="px-2.5 py-1.5 text-xs text-gray-500 hover:bg-white hover:text-black border border-transparent hover:border-gray-200 transition-all min-w-[32px] text-center"
-              >
-                {tool.icon}
-              </button>
-            ))}
-          </div>
+        {/* エディタ本体 */}
+        {editorMode === "editor" ? (
+          <RichEditor
+            content={form.body}
+            onChange={(html) => update("body", html)}
+            onImageUpload={handleBodyImageUpload}
+          />
+        ) : (
+          <textarea
+            value={form.body}
+            onChange={(e) => update("body", e.target.value)}
+            rows={25}
+            className="w-full px-4 py-4 border border-gray-200 outline-none font-mono text-xs text-gray-600 leading-[1.8] resize-y"
+            placeholder="<h2>見出し</h2><p>本文をHTMLで入力...</p>"
+          />
         )}
-
-        {/* テキストエリア */}
-        <textarea
-          ref={textareaRef}
-          value={form.body}
-          onChange={(e) => update("body", e.target.value)}
-          onDrop={handleDrop}
-          onDragOver={(e) => e.preventDefault()}
-          rows={editorMode === "editor" ? 20 : 25}
-          className={`w-full px-4 py-4 outline-none resize-y ${
-            editorMode === "code"
-              ? "font-mono text-xs text-gray-600 leading-[1.8]"
-              : "text-sm leading-[2.2] text-gray-800"
-          }`}
-          placeholder={
-            editorMode === "editor"
-              ? "ここに本文を入力してください。\nツールバーで見出しや太字を簡単に挿入できます。\n画像はドラッグ＆ドロップでも挿入できます。"
-              : "## 見出し\n\n本文をMarkdownで入力..."
-          }
-        />
       </div>
 
       {/* ── 送信ボタン ── */}

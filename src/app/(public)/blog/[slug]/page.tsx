@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getPostBySlug } from "@/lib/blog";
-import { marked } from "marked";
 
 export const dynamic = "force-dynamic";
 
@@ -12,8 +11,6 @@ export default async function BlogPostPage({
 }) {
   const post = await getPostBySlug(params.slug);
   if (!post || !post.published) notFound();
-
-  const htmlContent = marked(post.body);
 
   return (
     <div className="pt-[80px]">
@@ -47,18 +44,10 @@ export default async function BlogPostPage({
             </h1>
           </div>
 
-          {/* Body */}
+          {/* Body — TiptapのHTML出力をそのまま表示 */}
           <div
-            className="prose prose-sm max-w-none text-gray-700 leading-[2]
-              [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-black [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:border-b [&_h2]:border-gray-200 [&_h2]:pb-2
-              [&_h3]:text-base [&_h3]:font-bold [&_h3]:text-black [&_h3]:mt-8 [&_h3]:mb-3
-              [&_p]:mb-6
-              [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-6
-              [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-6
-              [&_li]:mb-1
-              [&_strong]:text-black
-              [&_a]:text-primary [&_a]:underline"
-            dangerouslySetInnerHTML={{ __html: htmlContent }}
+            className="tiptap max-w-none text-gray-700"
+            dangerouslySetInnerHTML={{ __html: post.body }}
           />
 
           {/* Back */}
