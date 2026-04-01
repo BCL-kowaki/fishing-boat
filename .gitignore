@@ -21,8 +21,6 @@
 ._*
 *.pem
 
-# large media files (deploy via Vercel/CDN)
-public/*.mp4
 
 # debug
 npm-debug.log*
